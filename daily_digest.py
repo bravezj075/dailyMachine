@@ -198,9 +198,9 @@ def send_notification(content):
     today_str = datetime.date.today().strftime("%Y-%m-%d")
     title = f"📅 CTO 早报 | {today_str}"
     
-    # 构造飞书交互式卡片
+    # 1. 构造字典 (不要在这里做任何 json.dumps 操作)
     msg = {
-        "msg_type": "interactive",
+        "msg_type": "interactive", # 告诉飞书这是卡片，不是文本
         "card": {
             "header": {
                 "title": {
@@ -226,15 +226,16 @@ def send_notification(content):
         }
     }
 
-    # 兼容 Slack (如果 URL 包含 slack)
-    if WEBHOOK_URL and "hooks.slack.com" in WEBHOOK_URL:
-        msg = {"text": f"*{title}*\n\n{content}"}
-
+    # 2. 发送请求
     try:
-        # ✅ 关键修正：直接使用 json=msg，不要 json.dumps
+        # ❌ 千万不要写成 json=json.dumps(msg) 
+        # ✅ 正确写法：直接传字典，requests 库会自动处理头信息和序列化
         resp = requests.post(WEBHOOK_URL, json=msg)
-        resp.raise_for_status() # 检查 HTTP 错误
-        print(f"✅ 推送成功! 响应: {resp.json()}")
+        
+        # 打印结果帮助排查
+        print(f"推送状态码: {resp.status_code}")
+        print(f"推送响应: {resp.text}")
+        
     except Exception as e:
         print(f"❌ 推送失败: {e}")
 
