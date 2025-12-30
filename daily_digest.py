@@ -129,33 +129,55 @@ def analyze_and_summarize(content_list):
 
     print(f"正在调用豆包 ({DOUBAO_MODEL}) 分析 {len(content_list)} 条内容...")
     
+    # --- 修改点 1: 优化 Prompt，适配飞书格式 ---
     prompt = f"""
     你是我公司的【首席技术情报官】。
+    
     【我的背景】
     {COMPANY_CONTEXT}
+    
     【今日原始情报】
     {raw_text}
+    
     【任务】
     请以 CTO 的战略视角审视信息，剔除噪音。
-    【输出格式 (Markdown)】
-    ### 🚀 行业与业务动态
-    * **[标题](链接)**
-      * **情报**: 一句话概括。
-      * **CTO 洞察**: 对电商/金融业务的价值。
-    ### ⚡ 技术前沿
-    * **[标题](链接)**
-      * **情报**: 解决了什么技术难题。
-      * **CTO 洞察**: 实施难度与收益。
+    
+    【⚠️ 格式严格要求 (针对飞书渲染优化)】
+    1. **绝对不要使用** Markdown 标题语法（如 #, ##, ###），因为客户端无法渲染。
+    2. 所有的标题、重点，请一律使用 **双星号加粗** (例如：**标题**) 代替。
+    3. 列表项请使用 emoji (🔹) 或圆点 (•) 开头。
+    
+    【目标输出样式模板】
+    **🚀 行业与业务动态**
+    
+    **[标题文本](链接URL)**
+    • **情报**: 这里写摘要...
+    • **CTO 洞察**: 这里写分析...
+    
+    (空一行)
+    
+    **⚡ 技术前沿**
+    
+    **[标题文本](链接URL)**
+    • **情报**: 这里写摘要...
+    • **CTO 洞察**: 这里写分析...
+    
     如果全是噪音，回复“今日无高价值更新”。
     """
 
     try:
         response = client.chat.completions.create(
-            model=DOUBAO_MODEL, # 这里使用环境变量中的 Endpoint ID
+            model=DOUBAO_MODEL,
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3 # 豆包建议稍微调低一点温度以保持稳定
+            temperature=0.3
         )
-        return response.choices[0].message.content
+        content = response.choices[0].message.content
+        
+        # --- 修改点 2: 强制代码清洗 (防止 AI 不听话) ---
+        # 如果 AI 还是输出了 ###，我们强制把它删掉，或者替换为加粗
+        content = content.replace("### ", "").replace("## ", "").replace("###", "")
+        
+        return content
     except Exception as e:
         print(f"LLM 调用失败: {e}")
         return None
