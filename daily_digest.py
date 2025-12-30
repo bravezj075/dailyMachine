@@ -48,7 +48,12 @@ YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
 UNIX_TIMESTAMP_YESTERDAY = int(time.mktime(YESTERDAY.timetuple()))
 
 # 初始化客户端
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# 修改为 👇 (注意 base_url)
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"), # 这里的 Key 换成 DeepSeek 的
+    base_url="https://api.deepseek.com"       # 指向 DeepSeek 的服务器
+)
 WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
 # ================= 抓取函数 =================
@@ -165,7 +170,8 @@ def analyze_and_summarize(content_list):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+           # model="gpt-4o",
+            model="deepseek-chat",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7
         )
