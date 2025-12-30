@@ -1,0 +1,30 @@
+name: Daily Tech Digest
+
+on:
+  schedule:
+    # 北京时间每天早上 9:00 (UTC 1:00) 触发
+    - cron: '0 1 * * *'
+  workflow_dispatch: # 允许你在 GitHub 网页上手动点击按钮触发测试
+
+jobs:
+  run-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Digest Script
+        env:
+          # 这里的 secrets 需要在 GitHub 仓库设置中添加
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        run: python daily_digest.py
