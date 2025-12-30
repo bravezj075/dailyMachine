@@ -27,4 +27,5 @@ jobs:
           # 这里的 secrets 需要在 GitHub 仓库设置中添加
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          DOUBAO_ENDPOINT_ID: ${{ secrets.DOUBAO_ENDPOINT_ID }}
         run: python daily_digest.py
